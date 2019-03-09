@@ -22,12 +22,12 @@ contract ERC20 {
     uint256 private _totalSupply;
     uint8 private _decimals;
 
-    constructor(bytes32 name, bytes32 ticker, uint totalSupply, uint8 decimals) public {
+    constructor() public {
         _owner = msg.sender;
-        _name = name;
-        _ticker = ticker;
-        _totalSupply = totalSupply;
-        _decimals = decimals;
+        _name = "Keke";
+        _ticker = "kk";
+        _totalSupply = 10**30;
+        _decimals = 8;
         _mint(_owner, _totalSupply);
     }
 

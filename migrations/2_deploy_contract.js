@@ -1,5 +1,8 @@
-const Token = artifacts.require("ERC20");
+const ERC20 = artifacts.require("ERC20");
+const SafeMath = artifacts.require("SafeMath");
 
 module.exports = function(deployer) {
-  deployer.deploy(Token("keke", "kk", 10**30, 8));
+  deployer.deploy(SafeMath);
+  deployer.link(SafeMath, ERC20);
+  deployer.deploy(ERC20);
 };
