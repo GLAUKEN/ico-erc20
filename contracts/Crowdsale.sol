@@ -34,6 +34,7 @@ contract Crowdsale {
         _owner = msg.sender;
         _rate = rate;
         _token = token;
+        addToWhitelist(_owner);
     }
 
     function () external payable {
@@ -71,22 +72,30 @@ contract Crowdsale {
         _;
     }
 
-    function _addToWhiteList(address _address) public onlyOwner() isNotZeroAccount(_address) {
+    function addToWhitelist(address _address) public onlyOwner() isNotZeroAccount(_address) {
         require(!_whitelist[_address], "aldready in whitelist");
         _whitelist[_address] = true;
         investors.push(_address);
         emit WhitelistedAdded(_address);
     }
 
-    function _addPrivilege(address _address, uint _privilegedRate) public onlyOwner() isWhitelisted(_address) isNotZeroAccount(_address) {
+    function addPrivilege(address _address, uint _privilegedRate) public onlyOwner() isWhitelisted(_address) isNotZeroAccount(_address) {
         _privilegeRate[_address] = _privilegedRate;
         emit PrivilegedAdded(_address, _privilegedRate);
     }
 
-    function _removePrivilege(address _address) public onlyOwner() {
+    function removePrivilege(address _address) public onlyOwner() {
         require(_privilegeRate[_address] != 0, "not a privileged one");
         delete _privilegeRate[_address];
         emit PrivilegedRemoved(_address);
+    }
+    
+    function isInWhitelist(address _address) public view returns (bool) {
+        return _whitelist[_address];
+    }
+
+    function isPrivileged(address _address) public view returns (bool) {
+        return _privilegeRate[_address] != 0;
     }
 
     function airdrop(uint _value) external onlyOwner() {
@@ -104,7 +113,6 @@ contract Crowdsale {
         _weiRaised = _weiRaised.add(weiAmount);
         _processPurchase(beneficiary, tokens);
         emit TokensPurchased(msg.sender, beneficiary, weiAmount, tokens);
-        _forwardFunds();
     }
 
     function _preValidatePurchase(address beneficiary, uint weiAmount) internal pure {
@@ -122,9 +130,5 @@ contract Crowdsale {
 
     function _getTokenAmount(address _address, uint weiAmount) internal view returns (uint) {
         return (_privilegeRate[_address] == 0) ? weiAmount.mul(_rate) : (weiAmount.mul(_rate) * _privilegeRate[_address]);
-    }
-
-    function _forwardFunds() internal {
-        _owner.transfer(msg.value);
     }
 }
