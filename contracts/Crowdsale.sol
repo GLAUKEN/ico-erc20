@@ -5,8 +5,10 @@ import "./ERC20.sol";
 import "./ReentrancyGuard.sol";
 
 contract Crowdsale is ReentrancyGuard, Ownable {
+
     using SafeMath for uint256;
 
+    event TokensPurchased(address indexed purchaser, address indexed beneficiary, uint value, uint amount);
     event WhitelistedAdded(address indexed account);
     event PrivilegedAdded(address indexed account, uint rate);
     event PrivilegedRemoved(address indexed account);
@@ -18,22 +20,15 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     address[] public investors;
 
     ERC20 private _token;
-
     address private _wallet;
 
     // rate = 4
     // decimals = 8
     // 1 wei = 0.00000004 token
     uint private _rate;
-
     uint private _weiRaised;
 
-    event TokensPurchased(address indexed purchaser, address indexed beneficiary, uint value, uint amount);
 
-    /**
-     * @param wallet Address where collected funds will be forwarded to
-     * @param token Address of the token being sold
-     */
     constructor (uint rate, address wallet, ERC20 token) public {
         require(rate > 0, "rate is negative");
         require(wallet != address(0), "address 0x0");
