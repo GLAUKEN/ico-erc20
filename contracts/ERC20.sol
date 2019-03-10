@@ -1,8 +1,9 @@
 pragma solidity ^0.4.24;
 
+import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract ERC20 {
+contract ERC20 is Ownable {
 
     using SafeMath for uint256;
 
@@ -11,24 +12,18 @@ contract ERC20 {
 
     mapping (address => uint256) private _balances;
     mapping (address => mapping (address => uint256)) private _allowed;
-    mapping (address => bool) private _whiteList;
-    mapping (address => uint) private _privilegeRate;
 
-    address[] public investors;
-
-    address private _owner;
     bytes32 private _name;
     bytes32 private _ticker;
-    uint256 private _totalSupply;
+    uint private _totalSupply;
     uint8 private _decimals;
 
-    constructor() public {
-        _owner = msg.sender;
-        _name = "Keke";
-        _ticker = "kk";
-        _totalSupply = 10**30;
-        _decimals = 8;
-        _mint(_owner, _totalSupply);
+    constructor(bytes32 name, bytes32 ticker, uint totalSupply, uint8 decimals) public {
+        _name = name;
+        _ticker = ticker;
+        _totalSupply = totalSupply;
+        _decimals = decimals;
+        _mint(owner(), _totalSupply);
     }
 
     function totalSupply() public view returns (uint256) {
@@ -47,21 +42,6 @@ contract ERC20 {
         return _ticker;
     }
 
-    function _addToWhiteList(address _address) private onlyOwner() {
-        require(!_whiteList[_address], "aldready in whitelist");
-        _whiteList[_address] = true;
-        investors.push(_address);
-    }
-
-    function _addPrivilege(address _privileged, uint _rate) private onlyOwner() isWhiteListed(_privileged) {
-        _privilegeRate[_privileged] = _rate;
-    }
-
-    function _removePrivilege(address _privileged) private onlyOwner() {
-        require(_privilegeRate[_privileged] != 0, "not a privileged one");
-        delete _privilegeRate[_privileged];
-    }
-
     function transfer(address _to, uint256 _value) public returns (bool) {
         _transfer(msg.sender, _to, _value);
         return true;
@@ -73,37 +53,15 @@ contract ERC20 {
         return true;
     }
 
-    function buyToken(uint _value) public payable isWhiteListed(msg.sender) {
-        // 1 ether = 10 tokens
-        require(msg.value == _value / 10, "not correct msg.value");
-        require(_balances[_owner] >= _value, "total supply reached");
-        _balances[_owner] -= _value;
-        if (_privilegeRate[msg.sender] != 0) {
-            _balances[msg.sender] += _privilegeRate[msg.sender] * _value;
-        } else {
-            _balances[msg.sender] += _value;
-        }
-    }
-
-    function airdrop(uint _value) public onlyOwner() {
-        require(_balances[_owner] >= _value * investors.length, "airdrop fail, balance insufficient");
-        for (uint i = 0; i < investors.length; i++) {
-            _balances[investors[i]] += _value;
-        }
+    function _transfer(address from, address to, uint256 value) private {
+        require(to != address(0), "");
+        _balances[from] = _balances[from].sub(value);
+        _balances[to] = _balances[to].add(value);
+        emit Transfer(from, to, value);
     }
 
     function balanceOf(address owner) public view returns (uint256) {
         return _balances[owner];
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == _owner, "not owner");
-        _;
-    }
-
-    modifier isWhiteListed(address _address) {
-        require(_whiteList[_address], "not in whitelist");
-        _;
     }
 
     function _mint(address _receiver, uint256 _value) internal {
@@ -114,17 +72,17 @@ contract ERC20 {
         emit Transfer(address(0), _receiver, _value);
     }
 
+    function approve(address spender, uint256 value) public returns (bool) {
+        _approve(msg.sender, spender, value);
+        return true;
+    }
+
     function _approve(address owner, address spender, uint256 value) internal {
         require(spender != address(0), "");
         require(owner != address(0), "");
 
         _allowed[owner][spender] = value;
         emit Approval(owner, spender, value);
-    }
-
-    function approve(address spender, uint256 value) public returns (bool) {
-        _approve(msg.sender, spender, value);
-        return true;
     }
 
     /**
@@ -146,14 +104,6 @@ contract ERC20 {
     function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
         _approve(msg.sender, spender, _allowed[msg.sender][spender].sub(subtractedValue));
         return true;
-    }
-
-    function _transfer(address from, address to, uint256 value) internal {
-        require(to != address(0), "");
-
-        _balances[from] = _balances[from].sub(value);
-        _balances[to] = _balances[to].add(value);
-        emit Transfer(from, to, value);
     }
 
     function _burn(address account, uint256 value) internal {
