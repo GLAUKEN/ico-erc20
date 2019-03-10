@@ -1,9 +1,9 @@
 pragma solidity ^0.4.24;
 
 import "./ERC20.sol";
-import "./ReentrancyGuard.sol";
+//import "./ReentrancyGuard.sol";
 
-contract Crowdsale is ReentrancyGuard {
+contract Crowdsale {
 
     using SafeMath for uint256;
 
@@ -95,7 +95,7 @@ contract Crowdsale is ReentrancyGuard {
         emit AirdropSuccessful(_value);
     }
 
-    function buyTokens(address beneficiary) public nonReentrant payable {
+    function buyTokens(address beneficiary) public payable {
         uint weiAmount = msg.value;
         _preValidatePurchase(beneficiary, weiAmount);
         uint tokens = _getTokenAmount(beneficiary, weiAmount);
