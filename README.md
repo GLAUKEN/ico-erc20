@@ -15,7 +15,7 @@ For our crowdsale and token ERC20, we used Openzeppelin which is a library of se
 
 ### [Metamask](https://metamask.io/)
 
-#### Chrome extension allowing us to connect to the Ethereum main net, testnets (Ropsten, Rinkeby, Kovan)
+#### Chrome extension allowing us to connect to the Ethereum mainnet and testnets (Ropsten, Rinkeby, Kovan)
 
 Just install it like any other chrome extension
 
