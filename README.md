@@ -96,3 +96,36 @@ Create a .env file and store the mnemonic and the Infura API key
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     }
 
+### Deploy contracts
+
+Now that we have our contracts and the endpoint to Ropsten, we can deploy our contracts.
+
+    truffle compile
+    truffle migrate --network ropsten
+
+In order to interact with our contracts, we also use truffle
+
+    truffle console --network ropsten
+
+## Demonstration
+
+Our crowdsale is based on whitelist, that is to say, only whitelisted can earn, buy, sell our token.
+To add a whitelisted we need an instance of our Crowdsale contract:
+
+    Crowdsale.deployed().then(instance => crowdsale = instance)
+
+Now that we have our instance, we can use functions/methods of this contract:
+
+    crowdsale.addToWhitelist(<address>)
+    crowdsale.isInWhitelist(<address>)
+    > true
+
+To transfer some tokens to an address, we can use either the buyTokens function of the Crowdsale contract or either transfer functions of ERC20 contract.
+
+    ERC20.deployed().then(intance => erc = instance)
+    erc.transfer(<address>, 421)
+    erc.transferFrom(<sender>, <receiver>, 421)
+
+Same logic for other functions.
+
+*Note: <address> should be replaced by an a real address. For example: "0x14e..."*
