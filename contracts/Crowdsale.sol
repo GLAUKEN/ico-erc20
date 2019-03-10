@@ -1,10 +1,9 @@
 pragma solidity ^0.4.24;
 
-import "./Ownable.sol";
 import "./ERC20.sol";
 import "./ReentrancyGuard.sol";
 
-contract Crowdsale is ReentrancyGuard, Ownable {
+contract Crowdsale is ReentrancyGuard {
 
     using SafeMath for uint256;
 
@@ -21,7 +20,7 @@ contract Crowdsale is ReentrancyGuard, Ownable {
 
     ERC20 private _token;
 
-    address private _wallet;
+    address private _owner;
 
     // rate = 4
     // decimals = 8
@@ -30,13 +29,12 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     uint private _weiRaised;
 
 
-    constructor (uint rate, address wallet, ERC20 token) public {
+    constructor (uint rate, ERC20 token) public {
         require(rate > 0, "rate is negative");
-        require(wallet != address(0), "wallet 0x0");
         require(address(token) != address(0), "address 0x0");
 
+        _owner = msg.sender;
         _rate = rate;
-        _wallet = wallet;
         _token = token;
     }
 
@@ -54,6 +52,11 @@ contract Crowdsale is ReentrancyGuard, Ownable {
 
     function weiRaised() public view returns (uint) {
         return _weiRaised;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == _owner, "Owner 0x0");
+        _;
     }
 
     modifier isWhitelisted(address _address) {
@@ -85,9 +88,9 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     }
 
     function airdrop(uint _value) external onlyOwner() {
-        require(_token.balanceOf(owner()) >= _value * investors.length, "airdrop fail, balance insufficient");
+        require(_token.balanceOf(_owner) >= _value * investors.length, "airdrop fail, balance insufficient");
         for (uint8 i = 0; i < investors.length; i++) {
-            _token.transferFrom(owner(), investors[i], _value);
+            _token.transferFrom(_owner, investors[i], _value);
         }
         emit AirdropSuccessful(_value);
     }
@@ -108,7 +111,7 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     }
 
     function _deliverTokens(address beneficiary, uint tokenAmount) internal {
-        _token.transferFrom(owner(), beneficiary, tokenAmount);
+        _token.transferFrom(_owner, beneficiary, tokenAmount);
     }
 
     function _processPurchase(address beneficiary, uint tokenAmount) internal {
@@ -120,6 +123,6 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     }
 
     function _forwardFunds() internal {
-        _wallet.transfer(msg.value);
+        _owner.transfer(msg.value);
     }
 }

@@ -1,9 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract ERC20 is Ownable {
+contract ERC20 {
 
     using SafeMath for uint256;
 
@@ -12,18 +11,20 @@ contract ERC20 is Ownable {
 
     mapping (address => uint256) private _balances;
     mapping (address => mapping (address => uint256)) private _allowed;
-
+    
+    address private _owner;
     string private _name;
     string private _ticker;
     uint private _totalSupply;
     uint8 private _decimals;
 
     constructor(string name, string ticker, uint totalSupply, uint8 decimals) public {
+        _owner = msg.sender;
         _name = name;
         _ticker = ticker;
         _totalSupply = totalSupply;
         _decimals = decimals;
-        _mint(owner(), _totalSupply);
+        _mint(_owner, _totalSupply);
     }
 
     function totalSupply() public view returns (uint256) {
@@ -44,6 +45,11 @@ contract ERC20 is Ownable {
 
     function balanceOf(address owner) public view returns (uint256) {
         return _balances[owner];
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == _owner, "Owner 0x0");
+        _;
     }
 
     function transfer(address _to, uint256 _value) public returns (bool) {
