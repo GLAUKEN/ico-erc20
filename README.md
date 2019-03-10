@@ -96,7 +96,7 @@ Create a .env file and store the mnemonic and the Infura API key
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     }
 
-### Deploy contracts
+## Deploy contracts
 
 Now that we have our contracts and the endpoint to Ropsten, we can deploy our contracts.
 
@@ -128,4 +128,4 @@ To transfer some tokens to an address, we can use either the buyTokens function 
 
 Same logic for other functions.
 
-*Note: <address> should be replaced by an a real address. For example: "0x14e..."*
+*Note: < address> should be replaced by an a real address. For example: "0x14e..."*
