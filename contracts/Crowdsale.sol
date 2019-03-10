@@ -7,14 +7,18 @@ import "./ReentrancyGuard.sol";
 contract Crowdsale is ReentrancyGuard, Ownable {
     using SafeMath for uint256;
 
-    mapping (address => bool) private _whiteList;
+    event WhitelistedAdded(address indexed account);
+    event PrivilegedAdded(address indexed account, uint rate);
+    event PrivilegedRemoved(address indexed account);
+    event AirdropSuccessful(uint value);
+
+    mapping (address => bool) private _whitelist;
     mapping (address => uint) private _privilegeRate;
 
     address[] public investors;
 
     ERC20 private _token;
 
-    // Address where funds are collected
     address private _wallet;
 
     // rate = 4
@@ -66,24 +70,28 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         return _weiRaised;
     }
 
-    modifier isWhiteListed(address _address) {
-        require(_whiteList[_address], "not in whitelist");
+    modifier isWhitelisted(address _address) {
+        require(_whitelist[_address], "not in whitelist");
         _;
     }
 
     function _addToWhiteList(address _address) private onlyOwner() {
-        require(!_whiteList[_address], "aldready in whitelist");
-        _whiteList[_address] = true;
+        require(_address != address(0), "can't whitelisted 0x0");
+        require(!_whitelist[_address], "aldready in whitelist");
+        _whitelist[_address] = true;
         investors.push(_address);
+        emit WhitelistedAdded(_address);
     }
 
-    function _addPrivilege(address _privileged, uint _rate) private onlyOwner() isWhiteListed(_privileged) {
-        _privilegeRate[_privileged] = _rate;
+    function _addPrivilege(address _privileged, uint _privilegedRate) private onlyOwner() isWhitelisted(_privileged) {
+        _privilegeRate[_privileged] = _privilegedRate;
+        emit PrivilegedAdded(_privileged, _privilegedRate);
     }
 
     function _removePrivilege(address _privileged) private onlyOwner() {
         require(_privilegeRate[_privileged] != 0, "not a privileged one");
         delete _privilegeRate[_privileged];
+        emit PrivilegedRemoved(_privileged);
     }
 
     /**
@@ -95,36 +103,21 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     function buyTokens(address beneficiary) public nonReentrant payable {
         uint256 weiAmount = msg.value;
         _preValidatePurchase(beneficiary, weiAmount);
-
-        // calculate token amount to be created
         uint256 tokens = _getTokenAmount(weiAmount);
-
-        // update state
         _weiRaised = _weiRaised.add(weiAmount);
-
         _processPurchase(beneficiary, tokens);
         emit TokensPurchased(msg.sender, beneficiary, weiAmount, tokens);
         _forwardFunds();
     }
 
-    function airdrop(uint _value) external onlyOwner() returns (bool success) {
-        require(_balances[owner()] >= _value * investors.length, "airdrop fail, balance insufficient");
+    function airdrop(uint _value) external onlyOwner() {
+        require(_token.balanceOf(owner()) >= _value * investors.length, "airdrop fail, balance insufficient");
         for (uint8 i = 0; i < investors.length; i++) {
-            transferFrom(owner(), investors[i], _value);
+            _token.transferFrom(owner(), investors[i], _value);
         }
-        return true;
+        emit AirdropSuccessful(_value);
     }
 
-
-    /**
-     * @dev Validation of an incoming purchase. Use require statements to revert state when conditions are not met.
-     * Use `super` in contracts that inherit from Crowdsale to extend their validations.
-     * Example from CappedCrowdsale.sol's _preValidatePurchase method:
-     *     super._preValidatePurchase(beneficiary, weiAmount);
-     *     require(weiRaised().add(weiAmount) <= cap);
-     * @param beneficiary Address performing the token purchase
-     * @param weiAmount Value in wei involved in the purchase
-     */
     function _preValidatePurchase(address beneficiary, uint256 weiAmount) internal pure {
         require(beneficiary != address(0), "address 0x0");
         require(weiAmount != 0, "Wei amount = 0");
@@ -140,12 +133,6 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         _token.transferFrom(owner(), beneficiary, tokenAmount);
     }
 
-    /**
-     * @dev Executed when a purchase has been validated and is ready to be executed. Doesn't necessarily emit/send
-     * tokens.
-     * @param beneficiary Address receiving the tokens
-     * @param tokenAmount Number of tokens to be purchased
-     */
     function _processPurchase(address beneficiary, uint256 tokenAmount) internal {
         _deliverTokens(beneficiary, tokenAmount);
     }

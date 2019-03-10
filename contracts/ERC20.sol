@@ -42,6 +42,10 @@ contract ERC20 is Ownable {
         return _ticker;
     }
 
+    function balanceOf(address owner) public view returns (uint256) {
+        return _balances[owner];
+    }
+
     function transfer(address _to, uint256 _value) public returns (bool) {
         _transfer(msg.sender, _to, _value);
         return true;
@@ -60,13 +64,8 @@ contract ERC20 is Ownable {
         emit Transfer(from, to, value);
     }
 
-    function balanceOf(address owner) public view returns (uint256) {
-        return _balances[owner];
-    }
-
-    function _mint(address _receiver, uint256 _value) internal {
+    function _mint(address _receiver, uint256 _value) internal onlyOwner() {
         require(_receiver != address(0), "Error : account 0x0");
-
         _totalSupply = _totalSupply.add(_value);
         _balances[_receiver] = _balances[_receiver].add(_value);
         emit Transfer(address(0), _receiver, _value);
@@ -85,13 +84,6 @@ contract ERC20 is Ownable {
         emit Approval(owner, spender, value);
     }
 
-    /**
-     * @dev Function to check the amount of tokens that an owner allowed to a spender.
-     * @param owner address The address which owns the funds.
-     * @param spender address The address which will spend the funds.
-     * @return A uint256 specifying the amount of tokens still available for the spender.
-     */
-     
     function allowance(address owner, address spender) public view returns (uint256) {
         return _allowed[owner][spender];
     }
@@ -104,26 +96,5 @@ contract ERC20 is Ownable {
     function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
         _approve(msg.sender, spender, _allowed[msg.sender][spender].sub(subtractedValue));
         return true;
-    }
-
-    function _burn(address account, uint256 value) internal {
-        require(account != address(0), "");
-
-        _totalSupply = _totalSupply.sub(value);
-        _balances[account] = _balances[account].sub(value);
-        emit Transfer(account, address(0), value);
-    }
-
-    /**
-     * @dev Internal function that burns an amount of the token of a given
-     * account, deducting from the sender's allowance for said account. Uses the
-     * internal burn function.
-     * Emits an Approval event (reflecting the reduced allowance).
-     * @param account The account whose tokens will be burnt.
-     * @param value The amount that will be burnt.
-     */
-    function _burnFrom(address account, uint256 value) internal {
-        _burn(account, value);
-        _approve(account, msg.sender, _allowed[account][msg.sender].sub(value));
     }
 }
