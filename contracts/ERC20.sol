@@ -13,12 +13,12 @@ contract ERC20 is Ownable {
     mapping (address => uint256) private _balances;
     mapping (address => mapping (address => uint256)) private _allowed;
 
-    bytes32 private _name;
-    bytes32 private _ticker;
+    string private _name;
+    string private _ticker;
     uint private _totalSupply;
     uint8 private _decimals;
 
-    constructor(bytes32 name, bytes32 ticker, uint totalSupply, uint8 decimals) public {
+    constructor(string name, string ticker, uint totalSupply, uint8 decimals) public {
         _name = name;
         _ticker = ticker;
         _totalSupply = totalSupply;
@@ -34,11 +34,11 @@ contract ERC20 is Ownable {
         return _decimals;
     }
 
-    function name() public view returns (bytes32) {
+    function name() public view returns (string) {
         return _name;
     }
 
-    function ticker() public view returns (bytes32) {
+    function ticker() public view returns (string) {
         return _ticker;
     }
 
@@ -58,14 +58,14 @@ contract ERC20 is Ownable {
     }
 
     function _transfer(address from, address to, uint256 value) private {
-        require(to != address(0), "");
+        require(to != address(0), "address 0x0");
         _balances[from] = _balances[from].sub(value);
         _balances[to] = _balances[to].add(value);
         emit Transfer(from, to, value);
     }
 
     function _mint(address _receiver, uint256 _value) internal onlyOwner() {
-        require(_receiver != address(0), "Error : account 0x0");
+        require(_receiver != address(0), "address 0x0");
         _totalSupply = _totalSupply.add(_value);
         _balances[_receiver] = _balances[_receiver].add(_value);
         emit Transfer(address(0), _receiver, _value);

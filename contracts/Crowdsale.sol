@@ -24,17 +24,17 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     // rate = 4
     // decimals = 8
     // 1 wei = 0.00000004 token
-    uint256 private _rate;
+    uint private _rate;
 
-    uint256 private _weiRaised;
+    uint private _weiRaised;
 
-    event TokensPurchased(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
+    event TokensPurchased(address indexed purchaser, address indexed beneficiary, uint value, uint amount);
 
     /**
      * @param wallet Address where collected funds will be forwarded to
      * @param token Address of the token being sold
      */
-    constructor (uint256 rate, address wallet, ERC20 token) public {
+    constructor (uint rate, address wallet, ERC20 token) public {
         require(rate > 0, "rate is negative");
         require(wallet != address(0), "address 0x0");
         require(address(token) != address(0), "address 0x0");
@@ -44,12 +44,6 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         _token = token;
     }
 
-    /**
-     * @dev fallback function ***DO NOT OVERRIDE***
-     * Note that other contracts will transfer funds with a base gas stipend
-     * of 2300, which is not enough to call buyTokens. Consider calling
-     * buyTokens directly when purchasing tokens from a contract.
-     */
     function () external payable {
         buyTokens(msg.sender);
     }
@@ -62,11 +56,11 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         return _wallet;
     }
 
-    function rate() public view returns (uint256) {
+    function rate() public view returns (uint) {
         return _rate;
     }
 
-    function weiRaised() public view returns (uint256) {
+    function weiRaised() public view returns (uint) {
         return _weiRaised;
     }
 
@@ -75,39 +69,27 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         _;
     }
 
-    function _addToWhiteList(address _address) private onlyOwner() {
-        require(_address != address(0), "can't whitelisted 0x0");
+    modifier isNotZeroAccount(address _address) {
+        require(_address != address(0), "address 0x0");
+        _;
+    }
+
+    function _addToWhiteList(address _address) public onlyOwner() isNotZeroAccount(_address) {
         require(!_whitelist[_address], "aldready in whitelist");
         _whitelist[_address] = true;
         investors.push(_address);
         emit WhitelistedAdded(_address);
     }
 
-    function _addPrivilege(address _privileged, uint _privilegedRate) private onlyOwner() isWhitelisted(_privileged) {
-        _privilegeRate[_privileged] = _privilegedRate;
-        emit PrivilegedAdded(_privileged, _privilegedRate);
+    function _addPrivilege(address _address, uint _privilegedRate) public onlyOwner() isWhitelisted(_address) isNotZeroAccount(_address) {
+        _privilegeRate[_address] = _privilegedRate;
+        emit PrivilegedAdded(_address, _privilegedRate);
     }
 
-    function _removePrivilege(address _privileged) private onlyOwner() {
-        require(_privilegeRate[_privileged] != 0, "not a privileged one");
-        delete _privilegeRate[_privileged];
-        emit PrivilegedRemoved(_privileged);
-    }
-
-    /**
-     * @dev low level token purchase ***DO NOT OVERRIDE***
-     * This function has a non-reentrancy guard, so it shouldn't be called by
-     * another `nonReentrant` function.
-     * @param beneficiary Recipient of the token purchase
-     */
-    function buyTokens(address beneficiary) public nonReentrant payable {
-        uint256 weiAmount = msg.value;
-        _preValidatePurchase(beneficiary, weiAmount);
-        uint256 tokens = _getTokenAmount(weiAmount);
-        _weiRaised = _weiRaised.add(weiAmount);
-        _processPurchase(beneficiary, tokens);
-        emit TokensPurchased(msg.sender, beneficiary, weiAmount, tokens);
-        _forwardFunds();
+    function _removePrivilege(address _address) public onlyOwner() {
+        require(_privilegeRate[_address] != 0, "not a privileged one");
+        delete _privilegeRate[_address];
+        emit PrivilegedRemoved(_address);
     }
 
     function airdrop(uint _value) external onlyOwner() {
@@ -118,37 +100,33 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         emit AirdropSuccessful(_value);
     }
 
-    function _preValidatePurchase(address beneficiary, uint256 weiAmount) internal pure {
+    function buyTokens(address beneficiary) public nonReentrant payable {
+        uint weiAmount = msg.value;
+        _preValidatePurchase(beneficiary, weiAmount);
+        uint tokens = _getTokenAmount(beneficiary, weiAmount);
+        _weiRaised = _weiRaised.add(weiAmount);
+        _processPurchase(beneficiary, tokens);
+        emit TokensPurchased(msg.sender, beneficiary, weiAmount, tokens);
+        _forwardFunds();
+    }
+
+    function _preValidatePurchase(address beneficiary, uint weiAmount) internal pure {
         require(beneficiary != address(0), "address 0x0");
         require(weiAmount != 0, "Wei amount = 0");
     }
 
-    /**
-     * @dev Source of tokens. Override this method to modify the way in which the crowdsale ultimately gets and sends
-     * its tokens.
-     * @param beneficiary Address performing the token purchase
-     * @param tokenAmount Number of tokens to be emitted
-     */
-    function _deliverTokens(address beneficiary, uint256 tokenAmount) internal {
+    function _deliverTokens(address beneficiary, uint tokenAmount) internal {
         _token.transferFrom(owner(), beneficiary, tokenAmount);
     }
 
-    function _processPurchase(address beneficiary, uint256 tokenAmount) internal {
+    function _processPurchase(address beneficiary, uint tokenAmount) internal {
         _deliverTokens(beneficiary, tokenAmount);
     }
 
-    /**
-     * @dev Override to extend the way in which ether is converted to tokens.
-     * @param weiAmount Value in wei to be converted into tokens
-     * @return Number of tokens that can be purchased with the specified _weiAmount
-     */
-    function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
-        return weiAmount.mul(_rate);
+    function _getTokenAmount(address _address, uint weiAmount) internal view returns (uint) {
+        return (_privilegeRate[_address] == 0) ? weiAmount.mul(_rate) : (weiAmount.mul(_rate) * _privilegeRate[_address]);
     }
 
-    /**
-     * @dev Determines how ETH is stored/forwarded on purchases.
-     */
     function _forwardFunds() internal {
         _wallet.transfer(msg.value);
     }

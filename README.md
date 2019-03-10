@@ -75,7 +75,7 @@ In order to connect to the Ropsten testnet, we'll use **[Infura](https://infura.
 Now that we have our endpoint, we can make the connection with the Ropsten testnet.
 
 But since it requires our wallet mnemonic and our Infura API key, for security reasons we'll hide them
-We use the npm package **[Dotenv](https://www.npmjs.com/package/dotenv)** in order to read .env files.
+We use the npm package **[dotenv](https://www.npmjs.com/package/dotenv)** in order to read .env files.
 
     npm i dotenv
 
