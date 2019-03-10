@@ -27,6 +27,10 @@ contract ERC20 {
         _mint(_owner, _totalSupply);
     }
 
+    function owner() public view returns (address) {
+        return _owner;
+    }
+
     function totalSupply() public view returns (uint256) {
         return _totalSupply;
     }
@@ -43,8 +47,8 @@ contract ERC20 {
         return _ticker;
     }
 
-    function balanceOf(address owner) public view returns (uint256) {
-        return _balances[owner];
+    function balanceOf(address _address) public view returns (uint256) {
+        return _balances[_address];
     }
 
     modifier onlyOwner() {
@@ -82,16 +86,16 @@ contract ERC20 {
         return true;
     }
 
-    function _approve(address owner, address spender, uint256 value) internal {
+    function _approve(address sender, address spender, uint256 value) internal {
         require(spender != address(0), "address 0x0");
-        require(owner != address(0), "address 0x0");
+        require(sender != address(0), "address 0x0");
 
-        _allowed[owner][spender] = value;
-        emit Approval(owner, spender, value);
+        _allowed[sender][spender] = value;
+        emit Approval(sender, spender, value);
     }
 
-    function allowance(address owner, address spender) public view returns (uint256) {
-        return _allowed[owner][spender];
+    function allowance(address sender, address spender) public view returns (uint256) {
+        return _allowed[sender][spender];
     }
 
     function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {

@@ -69,7 +69,7 @@ We also need to match the solidity compiler with the truffle one
 
 ## Ropsten - Infura
 
-On metamask, select Ropsten and get some ether on a [faucet](https://faucet.metamask.io/)
+On metamask, select Ropsten and get some ether on a **[faucet](https://faucet.metamask.io/)**
 
 In order to connect to the Ropsten testnet, we'll use **[Infura](https://infura.io)**. First, we need to **[register](https://infura.io/signup)** in order to create our API endpoint.
 Now that we have our endpoint, we can make the connection with the Ropsten testnet.

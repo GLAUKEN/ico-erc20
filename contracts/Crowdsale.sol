@@ -1,7 +1,6 @@
 pragma solidity ^0.4.24;
 
 import "./ERC20.sol";
-//import "./ReentrancyGuard.sol";
 
 contract Crowdsale {
 
@@ -28,7 +27,6 @@ contract Crowdsale {
     uint private _rate;
     uint private _weiRaised;
 
-
     constructor (uint rate, ERC20 token) public {
         require(rate > 0, "rate is negative");
         require(address(token) != address(0), "address 0x0");
@@ -44,6 +42,10 @@ contract Crowdsale {
 
     function token() public view returns (ERC20) {
         return _token;
+    }
+
+    function owner() public view returns (address) {
+        return _owner;
     }
 
     function rate() public view returns (uint) {
