@@ -20,6 +20,7 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     address[] public investors;
 
     ERC20 private _token;
+
     address private _wallet;
 
     // rate = 4
@@ -31,7 +32,7 @@ contract Crowdsale is ReentrancyGuard, Ownable {
 
     constructor (uint rate, address wallet, ERC20 token) public {
         require(rate > 0, "rate is negative");
-        require(wallet != address(0), "address 0x0");
+        require(wallet != address(0), "wallet 0x0");
         require(address(token) != address(0), "address 0x0");
 
         _rate = rate;
@@ -45,10 +46,6 @@ contract Crowdsale is ReentrancyGuard, Ownable {
 
     function token() public view returns (ERC20) {
         return _token;
-    }
-
-    function wallet() public view returns (address) {
-        return _wallet;
     }
 
     function rate() public view returns (uint) {
