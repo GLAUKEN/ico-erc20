@@ -129,3 +129,5 @@ To transfer some tokens to an address, we can use either the buyTokens function 
 Same logic for other functions.
 
 *Note: < address> should be replaced by an a real address. For example: "0x14e..."*
+
+# ERC20 optimization, ICO model and front-end incoming
