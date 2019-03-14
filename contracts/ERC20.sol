@@ -13,12 +13,12 @@ contract ERC20 {
     mapping (address => mapping (address => uint256)) private _allowed;
     
     address private _owner;
-    string private _name;
-    string private _ticker;
+    bytes32 private _name;
+    bytes32 private _ticker;
     uint private _totalSupply;
     uint8 private _decimals;
 
-    constructor(string name, string ticker, uint totalSupply, uint8 decimals) public {
+    constructor(bytes32 name, bytes32 ticker, uint totalSupply, uint8 decimals) public {
         _owner = msg.sender;
         _name = name;
         _ticker = ticker;
@@ -39,11 +39,11 @@ contract ERC20 {
         return _decimals;
     }
 
-    function name() public view returns (string) {
+    function name() public view returns (bytes32) {
         return _name;
     }
 
-    function ticker() public view returns (string) {
+    function ticker() public view returns (bytes32) {
         return _ticker;
     }
 
