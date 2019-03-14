@@ -122,12 +122,12 @@ Now that we have our instance, we can use functions/methods of this contract:
 
 To transfer some tokens to an address, we can use either the buyTokens function of the Crowdsale contract or either transfer functions of ERC20 contract.
 
-    ERC20.deployed().then(intance => erc = instance)
+    ERC20.deployed().then(instance => erc = instance)
     erc.transfer(<address>, 421)
     erc.transferFrom(<sender>, <receiver>, 421)
 
 Same logic for other functions.
 
-*Note: < address> should be replaced by an a real address. For example: "0x14e..."*
+*Note: < address> should be replaced by a real address. For example: "0x14e..."*
 
 # ERC20 optimization, ICO model and front-end incoming
