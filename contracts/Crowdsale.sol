@@ -1,8 +1,9 @@
 pragma solidity ^0.4.24;
 
 import "./ERC20.sol";
+import "./ReentrancyGuard.sol";
 
-contract Crowdsale {
+contract Crowdsale is ReentrancyGuard {
 
     using SafeMath for uint256;
 
